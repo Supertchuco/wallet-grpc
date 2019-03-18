@@ -1,122 +1,53 @@
 package com.wallet.walletserver.service;
 
 
-import com.wallet.proto.BaseRequest;
-import com.wallet.proto.BaseResponse;
-import com.wallet.proto.OPERATION;
-import com.wallet.proto.STATUS;
-import com.wallet.proto.WalletServiceGrpc;
 import com.wallet.walletserver.entity.User;
-import com.wallet.walletserver.repository.WalletRepository;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
-import io.grpc.stub.StreamObserver;
+import com.wallet.walletserver.exception.AmountIsZeroException;
+import com.wallet.walletserver.exception.InsufficientFundsException;
 import lombok.extern.slf4j.Slf4j;
-import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 
 @Slf4j
-@GRpcService
-public class WalletService extends WalletServiceGrpc.WalletServiceImplBase {
-
-    @Autowired
-    private WalletRepository walletRepository;
+@Service
+public class WalletService {
 
     @Autowired
     private UserService userService;
 
-
-    @Override
-    @Transactional
-    public void deposit(final BaseRequest request, final StreamObserver<BaseResponse> responseObserver) {
-        try {
-            validateRequest(request);
-            final BigDecimal balanceToADD = new BigDecimal(request.getAmount());
-            log.info("Deposit operation user id:{} For Amount:{} and Currency: {}", request.getUserID(), request.getAmount(),
-                request.getCurrency());
-
-            User user = userService.findUserById(request.getUserID());
-            userService.validateUser(user);
-
-        /*    Optional<Wallet> wallet = getUserWallet(request);
-            bpWalletValidator.validateWallet(wallet);
-            updateWallet(wallet.get().getBalance().add(balanceToADD), wallet);*/
-
-
-            successResponse(responseObserver, OPERATION.DEPOSIT);
-            log.info("Operation finished with success");
-
-        } catch (Exception e) {
-            log.error("Error on deposit operation", e);
-            responseObserver.onError(new StatusRuntimeException(Status.UNKNOWN.withDescription(e.getMessage())));
+    private void checkIfAmountIsZero(final BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) < 1) {
+            log.error("Amount is zero");
+            throw new AmountIsZeroException("Amount is zero");
         }
     }
 
-   /* @Override
-    @Transactional
-    public void withdraw(final BaseRequest request, final StreamObserver<BaseResponse> responseObserver) {
-
-        logger.info("Request Recieved for UserID:{} For Amount:{}{} ", request.getUserID(), request.getAmount(),
-            request.getCurrency());
-        try {
-            final BigDecimal balanceToWithdraw = get(request.getAmount());
-            validateRequest(request);
-            Optional<Wallet> wallet = getUserWallet(request);
-            validateWithDrawRequest(balanceToWithdraw, wallet);
-            updateWallet(wallet.get().getBalance().subtract(balanceToWithdraw), wallet);
-            successResponse(responseObserver, OPERATION.WITHDRAW);
-        } catch (BPValidationException e) {
-            logger.error(e.getErrorStatus().name());
-            responseObserver
-                .onError(new StatusRuntimeException(e.getStatus().withDescription(e.getErrorStatus().name())));
-        } catch (Exception e) {
-            logger.error("------------>", e);
-            responseObserver.onError(new StatusRuntimeException(Status.UNKNOWN.withDescription(e.getMessage())));
-        } finally {
-            walletRepository.flush();
+    private void checkIfWithdrawValueIsEqualOrGreaterThanBalance(final BigDecimal withdrawValue, final BigDecimal balanceValue) {
+        if (withdrawValue.compareTo(balanceValue) == -1) {
+            log.error("Insufficient funds to withdraw operation");
+            throw new InsufficientFundsException("Insufficient funds to withdraw operation");
         }
     }
 
-    @Override
-    @Transactional
-
-    public void balance(final BaseRequest request, final StreamObserver<BaseResponse> responseObserver) {
-        logger.info("Request Recieved for UserID:{}", request.getUserID());
-        try {
-            Optional<List<Wallet>> userWallets = walletRepository.findByWalletPK_UserID(request.getUserID());
-            bpWalletValidator.validate(userWallets);
-            String balance = balanceResponseDTO.getBalanceAsString(userWallets);
-            logger.info(balance);
-            responseObserver.onNext(BaseResponse.newBuilder().setStatusMessage(balance)
-                .setStatus((STATUS.TRANSACTION_SUCCESS)).setOperation(OPERATION.BALANCE).build());
-            responseObserver.onCompleted();
-        } catch (BPValidationException e) {
-            logger.error(e.getErrorStatus().name());
-            responseObserver
-                .onError(new StatusRuntimeException(e.getStatus().withDescription(e.getErrorStatus().name())));
-        } catch (Exception e) {
-            logger.error("------------>", e);
-            responseObserver.onError(new StatusRuntimeException(Status.UNKNOWN.withDescription(e.getMessage())));
-        } finally {
-
-        }
-
-    }*/
-
-
-    public void validateRequest(final BaseRequest request) {
-
-
+    public void depositOperation(final BigDecimal depositValue, final int userId) {
+        log.info("Initiate deposit Operation");
+        User user = userService.findUserById(userId);
+        userService.validateUser(user);
+        checkIfAmountIsZero(depositValue);
+        user.getWallet().setBalance(user.getWallet().getBalance().add(depositValue));
+        userService.saveUser(user);
     }
 
-
-    private void successResponse(final StreamObserver<BaseResponse> responseObserver, OPERATION operation) {
-        responseObserver.onNext(
-            BaseResponse.newBuilder().setStatus(STATUS.TRANSACTION_SUCCESS).setOperation(operation).build());
-        responseObserver.onCompleted();
+    public void withdrawOperation(final BigDecimal withdrawValue, final int userId) {
+        log.info("Initiate withdraw Operation");
+        User user = userService.findUserById(userId);
+        userService.validateUser(user);
+        checkIfAmountIsZero(withdrawValue);
+        checkIfWithdrawValueIsEqualOrGreaterThanBalance(withdrawValue, user.getWallet().getBalance());
+        user.getWallet().setBalance(user.getWallet().getBalance().subtract(withdrawValue));
+        userService.saveUser(user);
     }
 
 
