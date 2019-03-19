@@ -2,7 +2,7 @@ HELP.md
 .gradle
 /build/
 !gradle/wrapper/gradle-wrapper.jar
-
+!gradle/oracle/ojdbc6.jar
 ### STS ###
 .apt_generated
 .classpath
