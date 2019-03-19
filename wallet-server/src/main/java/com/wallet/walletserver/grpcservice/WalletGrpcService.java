@@ -1,12 +1,7 @@
 package com.wallet.walletserver.grpcservice;
 
 
-import com.wallet.proto.BaseRequest;
-import com.wallet.proto.BaseResponse;
-import com.wallet.proto.OPERATION;
-import com.wallet.proto.STATUS;
-import com.wallet.proto.StatusMessage;
-import com.wallet.proto.WalletServiceGrpc;
+import com.wallet.proto.*;
 import com.wallet.walletserver.exception.AmountIsZeroException;
 import com.wallet.walletserver.exception.InsufficientFundsException;
 import com.wallet.walletserver.exception.InvalidArgumentException;
@@ -41,14 +36,13 @@ public class WalletGrpcService extends WalletServiceGrpc.WalletServiceImplBase {
         try {
 
             log.info("Deposit operation user id:{} For Amount:{} and Currency: {}", request.getUserID(), request.getAmount(),
-                request.getCurrency());
+                    request.getCurrency());
 
             if (StringUtils.isEmpty(request.getAmount())) {
                 log.error("Some or more arguments is (are) invalid(s)");
                 throw new InvalidArgumentException("Some or more arguments is (are) invalid(s)");
             }
 
-            final BigDecimal depositValue = new BigDecimal(request.getAmount());
             walletService.depositOperation(new BigDecimal(request.getAmount()), request.getUserID());
             successResponse(responseObserver, OPERATION.DEPOSIT);
             log.info("Operation finished with success");
@@ -74,7 +68,7 @@ public class WalletGrpcService extends WalletServiceGrpc.WalletServiceImplBase {
         try {
 
             log.info("Withdraw operation user id:{} For withdraw value:{} and Currency: {}", request.getUserID(), request.getAmount(),
-                request.getCurrency());
+                    request.getCurrency());
 
             if (StringUtils.isEmpty(request.getAmount())) {
                 log.error("Some or more arguments is (are) invalid(s)");
@@ -104,42 +98,35 @@ public class WalletGrpcService extends WalletServiceGrpc.WalletServiceImplBase {
         }
     }
 
-  /*  @Override
+    @Override
     @Transactional
-
     public void balance(final BaseRequest request, final StreamObserver<BaseResponse> responseObserver) {
-        logger.info("Request Recieved for UserID:{}", request.getUserID());
         try {
-            Optional<List<Wallet>> userWallets = walletRepository.findByWalletPK_UserID(request.getUserID());
-            bpWalletValidator.validate(userWallets);
-            String balance = balanceResponseDTO.getBalanceAsString(userWallets);
-            logger.info(balance);
-            responseObserver.onNext(BaseResponse.newBuilder().setStatusMessage(balance)
-                .setStatus((STATUS.TRANSACTION_SUCCESS)).setOperation(OPERATION.BALANCE).build());
-            responseObserver.onCompleted();
-        } catch (BPValidationException e) {
-            logger.error(e.getErrorStatus().name());
-            responseObserver
-                .onError(new StatusRuntimeException(e.getStatus().withDescription(e.getErrorStatus().name())));
-        } catch (Exception e) {
-            logger.error("------------>", e);
-            responseObserver.onError(new StatusRuntimeException(Status.UNKNOWN.withDescription(e.getMessage())));
-        } finally {
 
+            log.info("Get balance operation user id:{} For withdraw value:{} and Currency: {}", request.getUserID(), request.getAmount(),
+                    request.getCurrency());
+
+            String balance = walletService.getBalance(request.getUserID()).toString();
+            log.info(balance);
+            responseObserver.onNext(BaseResponse.newBuilder().setStatusMessage(balance)
+                    .setStatus((STATUS.TRANSACTION_SUCCESS)).setOperation(OPERATION.BALANCE).build());
+            responseObserver.onCompleted();
+        } catch (UserNotFoundException userNotFoundException) {
+            responseObserver.onError(new StatusRuntimeException(Status.FAILED_PRECONDITION.withDescription(StatusMessage.USER_DOES_NOT_EXIST.name())));
+
+        } catch (Exception e) {
+            log.error("Error on deposit operation", e);
+            responseObserver.onError(new StatusRuntimeException(Status.UNKNOWN.withDescription(e.getMessage())));
         }
 
-    }*/
+    }
 
 
     private void successResponse(final StreamObserver<BaseResponse> responseObserver, OPERATION operation) {
         responseObserver.onNext(
-            BaseResponse.newBuilder().setStatus(STATUS.TRANSACTION_SUCCESS).setOperation(operation).build());
+                BaseResponse.newBuilder().setStatus(STATUS.TRANSACTION_SUCCESS).setOperation(operation).build());
         responseObserver.onCompleted();
     }
 
-
-
-
-    // deletar https://github.com/Akash-Mittal/bp-wallet-grpc-spring/blob/master/bp-wallet-server/src/main/java/com/bp/wallet/server/validation/BPWalletValidator.java
 
 }

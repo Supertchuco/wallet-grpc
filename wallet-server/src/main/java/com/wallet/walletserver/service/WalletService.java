@@ -18,13 +18,13 @@ public class WalletService {
     private UserService userService;
 
     private void checkIfAmountIsZero(final BigDecimal amount) {
-        if (amount.compareTo(BigDecimal.ZERO) < 1) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) < 1) {
             log.error("Amount is zero");
             throw new AmountIsZeroException("Amount is zero");
         }
     }
 
-    private void checkIfWithdrawValueIsEqualOrGreaterThanBalance(final BigDecimal withdrawValue, final BigDecimal balanceValue) {
+    private void checkIfBalanceIsEnoughToWithdrawOperation(final BigDecimal withdrawValue, final BigDecimal balanceValue) {
         if (withdrawValue.compareTo(balanceValue) == -1) {
             log.error("Insufficient funds to withdraw operation");
             throw new InsufficientFundsException("Insufficient funds to withdraw operation");
@@ -45,10 +45,16 @@ public class WalletService {
         User user = userService.findUserById(userId);
         userService.validateUser(user);
         checkIfAmountIsZero(withdrawValue);
-        checkIfWithdrawValueIsEqualOrGreaterThanBalance(withdrawValue, user.getWallet().getBalance());
+        checkIfBalanceIsEnoughToWithdrawOperation(withdrawValue, user.getWallet().getBalance());
         user.getWallet().setBalance(user.getWallet().getBalance().subtract(withdrawValue));
         userService.saveUser(user);
     }
 
+    public BigDecimal getBalance(final int userId) {
+        log.info("Initiate get balance Operation");
+        User user = userService.findUserById(userId);
+        userService.validateUser(user);
+        return user.getWallet().getBalance();
+    }
 
 }
