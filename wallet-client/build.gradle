@@ -21,6 +21,7 @@ apply plugin: 'com.google.protobuf'
 def grpcVersion = '1.19.0'
 def protobufVersion = '3.7.0'
 def protocVersion = protobufVersion
+def springBootGrpcVersion='2.0.1.RELEASE'
 
 protobuf {
 	protoc {
@@ -57,28 +58,21 @@ repositories {
 dependencies {
 	implementation('org.springframework.boot:spring-boot-starter-web')
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+//	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-	compile fileTree(dir: 'oracle', include: ['*.jar'])
+//	compile group: 'net.devh', name: 'grpc-client-spring-boot-autoconfigure', version: '2.2.1.RELEASE'
 
 	//compile("net.devh:grpc-server-spring-boot-starter:${grpcVersion}")
-	compile 'io.github.lognet:grpc-spring-boot-starter:3.1.0'
+//	compile 'io.github.lognet:grpc-spring-boot-starter:3.1.0'
 
-	//implementation("io.grpc:grpc-stub:${grpcVersion}")
-	//implementation("io.grpc:grpc-core:${grpcVersion}")
-	//implementation("io.grpc:grpc-protobuf:${grpcVersion}")
-	//implementation("io.grpc:grpc-netty:${grpcVersion}")
-
-
-	//implementation "io.grpc:grpc-protobuf:${grpcVersion}"
-	//implementation "io.grpc:grpc-stub:${grpcVersion}"
-	//implementation "com.google.protobuf:protobuf-java-util:${protobufVersion}"
-	//runtimeOnly "io.grpc:grpc-netty-shaded:${grpcVersion}"
-	//testImplementation "io.grpc:grpc-testing:${grpcVersion}"
-
+	compile "io.grpc:grpc-netty:${grpcVersion}"
+	compile "io.grpc:grpc-protobuf:${grpcVersion}"
+	compile "io.grpc:grpc-stub:${grpcVersion}"
+	compile("net.devh:grpc-client-spring-boot-starter:${springBootGrpcVersion}")
 
 	compile group: 'commons-io', name: 'commons-io', version: '2.6'
 	compileOnly('org.projectlombok:lombok')
-
+	compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.7.0'
+	compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.7.0'
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
 }

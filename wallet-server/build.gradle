@@ -60,7 +60,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
 	compile fileTree(dir: 'oracle', include: ['*.jar'])
-
+	runtimeOnly('com.h2database:h2')
+	
 	//compile("net.devh:grpc-server-spring-boot-starter:${grpcVersion}")
 	compile 'io.github.lognet:grpc-spring-boot-starter:3.1.0'
 	
