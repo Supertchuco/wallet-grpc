@@ -64,7 +64,7 @@ dependencies {
 
 	//compile("net.devh:grpc-server-spring-boot-starter:${grpcVersion}")
 //	compile 'io.github.lognet:grpc-spring-boot-starter:3.1.0'
-
+	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
 	compile "io.grpc:grpc-netty:${grpcVersion}"
 	compile "io.grpc:grpc-protobuf:${grpcVersion}"
 	compile "io.grpc:grpc-stub:${grpcVersion}"

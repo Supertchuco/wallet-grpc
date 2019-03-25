@@ -3,6 +3,7 @@ package com.wallet.walletserver.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,6 +18,7 @@ import java.math.BigDecimal;
 @Entity(name = "Wallet")
 @Table(name = "Wallet")
 @AllArgsConstructor
+@NoArgsConstructor
 public class Wallet implements Serializable {
 
     @Id
@@ -25,10 +27,4 @@ public class Wallet implements Serializable {
 
     @Column
     private BigDecimal balance;
-
-    @OneToOne
-    @JsonManagedReference
-    @JoinColumn(name = "id", nullable = false)
-    private User user;
-
 }

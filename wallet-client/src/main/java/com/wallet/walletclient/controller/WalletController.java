@@ -27,7 +27,7 @@ public class WalletController {
     private WalletService walletService;
 
     @GetMapping(path = "/deposit")
-    public STATUS deposit(@RequestParam(value = "userid") int userID, @RequestParam(value = "amount") String amount,
+    public String deposit(@RequestParam(value = "userid") int userID, @RequestParam(value = "amount") String amount,
                           @RequestParam(value = "currency") CURRENCY currency) throws InterruptedException, ExecutionException {
         return walletService.depositClientOperation(walletServiceFutureStub,
             BaseRequest.newBuilder().setUserID(userID).setAmount(amount).setCurrency(currency).build(),
@@ -35,7 +35,7 @@ public class WalletController {
     }
 
     @GetMapping(path = "/withdraw")
-    public STATUS withdraw(@RequestParam(value = "userid") int userID, @RequestParam(value = "amount") String amount,
+    public String withdraw(@RequestParam(value = "userid") int userID, @RequestParam(value = "amount") String amount,
                            @RequestParam(value = "currency") CURRENCY currency) throws InterruptedException, ExecutionException {
 
         return walletService.withdrawClientOperation(walletServiceFutureStub,
