@@ -21,6 +21,7 @@ apply plugin: 'com.google.protobuf'
 def grpcVersion = '1.19.0'
 def protobufVersion = '3.7.0'
 def protocVersion = protobufVersion
+def springBootGrpcVersion='2.0.1.RELEASE'
 
 protobuf {
 	protoc {
@@ -63,20 +64,12 @@ dependencies {
 	runtimeOnly('com.h2database:h2')
 	
 	//compile("net.devh:grpc-server-spring-boot-starter:${grpcVersion}")
-	compile 'io.github.lognet:grpc-spring-boot-starter:3.1.0'
-	
-	//implementation("io.grpc:grpc-stub:${grpcVersion}")
-	//implementation("io.grpc:grpc-core:${grpcVersion}")
-	//implementation("io.grpc:grpc-protobuf:${grpcVersion}")
-	//implementation("io.grpc:grpc-netty:${grpcVersion}")
+	//compile 'io.github.lognet:grpc-spring-boot-starter:3.1.0'
 
-
-	//implementation "io.grpc:grpc-protobuf:${grpcVersion}"
-	//implementation "io.grpc:grpc-stub:${grpcVersion}"
-	//implementation "com.google.protobuf:protobuf-java-util:${protobufVersion}"
-	//runtimeOnly "io.grpc:grpc-netty-shaded:${grpcVersion}"
-	//testImplementation "io.grpc:grpc-testing:${grpcVersion}"
-	
+	compile "io.grpc:grpc-netty:${grpcVersion}"
+	compile "io.grpc:grpc-protobuf:${grpcVersion}"
+	compile "io.grpc:grpc-stub:${grpcVersion}"
+	compile("net.devh:grpc-server-spring-boot-starter:${springBootGrpcVersion}")
 	
 
 	compileOnly('org.projectlombok:lombok')

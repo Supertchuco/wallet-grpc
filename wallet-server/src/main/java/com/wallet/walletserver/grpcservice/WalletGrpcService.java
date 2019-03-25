@@ -12,7 +12,7 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import org.lognet.springboot.grpc.GRpcService;
+import net.devh.springboot.autoconfigure.grpc.server.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
@@ -20,7 +20,7 @@ import javax.transaction.Transactional;
 import java.math.BigDecimal;
 
 @Slf4j
-@GRpcService
+@GrpcService(WalletServiceGrpc.class)
 public class WalletGrpcService extends WalletServiceGrpc.WalletServiceImplBase {
 
     @Autowired
