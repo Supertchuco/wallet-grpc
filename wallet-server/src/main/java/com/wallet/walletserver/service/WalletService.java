@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -18,14 +19,14 @@ public class WalletService {
     private UserService userService;
 
     private void checkIfAmountIsZero(final BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) < 1) {
-            log.error("Amount is zero");
+        if (Objects.isNull(amount) || amount.compareTo(BigDecimal.ZERO) < 1) {
+            log.error("Amount is zero or null {}", amount);
             throw new AmountIsZeroException("Amount is zero");
         }
     }
 
     private void checkIfBalanceIsEnoughToWithdrawOperation(final BigDecimal withdrawValue, final BigDecimal balanceValue) {
-        if (withdrawValue.compareTo(balanceValue) == -1) {
+        if (Objects.isNull(balanceValue) || withdrawValue.compareTo(balanceValue) == 1) {
             log.error("Insufficient funds to withdraw operation");
             throw new InsufficientFundsException("Insufficient funds to withdraw operation");
         }
