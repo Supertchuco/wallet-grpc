@@ -43,7 +43,7 @@ public class WalletGrpcService extends WalletServiceGrpc.WalletServiceImplBase {
                 throw new InvalidArgumentException("Some or more arguments is (are) invalid(s)");
             }
 
-            walletService.depositOperation(new BigDecimal(request.getAmount()), request.getUserID());
+            walletService.depositOperation(new BigDecimal(request.getAmount()), request.getUserID(), request.getCurrency());
             successResponse(responseObserver, OPERATION.DEPOSIT);
             log.info("Operation finished with success");
 
@@ -76,7 +76,7 @@ public class WalletGrpcService extends WalletServiceGrpc.WalletServiceImplBase {
             }
 
             final BigDecimal withdrawValue = new BigDecimal(request.getAmount());
-            walletService.withdrawOperation(new BigDecimal(request.getAmount()), request.getUserID());
+            walletService.withdrawOperation(new BigDecimal(request.getAmount()), request.getUserID(), request.getCurrency());
             successResponse(responseObserver, OPERATION.WITHDRAW);
             log.info("Operation finished with success");
 
@@ -106,7 +106,7 @@ public class WalletGrpcService extends WalletServiceGrpc.WalletServiceImplBase {
             log.info("Get balance operation user id:{} For withdraw value:{} and Currency: {}", request.getUserID(), request.getAmount(),
                     request.getCurrency());
 
-            String balance = walletService.getBalance(request.getUserID()).toString();
+            String balance = walletService.getWalletsBalance(request.getUserID()).toString();
             log.info(balance);
             responseObserver.onNext(BaseResponse.newBuilder().setStatusMessage(balance)
                     .setStatus((STATUS.TRANSACTION_SUCCESS)).setOperation(OPERATION.BALANCE).build());
