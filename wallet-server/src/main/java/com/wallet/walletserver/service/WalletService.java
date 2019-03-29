@@ -5,17 +5,22 @@ import com.google.gson.Gson;
 import com.wallet.proto.CURRENCY;
 import com.wallet.walletserver.entity.User;
 import com.wallet.walletserver.entity.Wallet;
+import com.wallet.walletserver.enumerator.Operation;
 import com.wallet.walletserver.exception.AmountIsZeroException;
 import com.wallet.walletserver.exception.InsufficientFundsException;
+import com.wallet.walletserver.exception.OperationNotRecognizedException;
 import com.wallet.walletserver.vo.WalletBalance;
 import com.wallet.walletserver.vo.WalletsBalance;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -38,37 +43,51 @@ public class WalletService {
         }
     }
 
-    public void depositOperation(final BigDecimal depositValue, final int userId, final CURRENCY currency) {
+    public User depositOperation(final BigDecimal depositValue, final int userId, final CURRENCY currency) {
         log.info("Initiate deposit Operation");
         User user = userService.findUserById(userId);
-        userService.validateUser(user);
+        userService.validateUser(user, currency);
         checkIfAmountIsZero(depositValue);
-        user.getWalletByCurrency(currency.name()).setBalance(user.getWalletByCurrency(currency.name()).getBalance().add(depositValue));
-        userService.saveUser(user);
+        user.getWalletByCurrency(currency.name()).setBalance(updateWalletBalanceValue(user.getWalletByCurrency(currency.name()).getBalance(), depositValue, Operation.DEPOSIT.name()));
+        return userService.saveUser(user);
     }
 
     public void withdrawOperation(final BigDecimal withdrawValue, final int userId, final CURRENCY currency) {
         log.info("Initiate withdraw Operation");
         User user = userService.findUserById(userId);
-        userService.validateUser(user);
+        userService.validateUser(user, currency);
         checkIfAmountIsZero(withdrawValue);
         checkIfBalanceIsEnoughToWithdrawOperation(withdrawValue, user.getWalletByCurrency(currency.name()).getBalance());
-        user.getWalletByCurrency(currency.name()).setBalance(user.getWalletByCurrency(currency.name()).getBalance().subtract(withdrawValue));
+        user.getWalletByCurrency(currency.name()).setBalance(updateWalletBalanceValue(user.getWalletByCurrency(currency.name()).getBalance(), withdrawValue, Operation.WITHDRAW.name()));
         userService.saveUser(user);
     }
 
     public String getWalletsBalance(final int userId) {
         log.info("Initiate get balance Operation");
         User user = userService.findUserById(userId);
-        userService.validateUser(user);
-
-        WalletBalance walletBalance = null;
+        userService.checkIfUserExists(user);
         List<WalletBalance> walletBalanceList = new ArrayList<>();
-        for (Wallet currentWallet : user.getWallets()) {
-            walletBalanceList.add(new WalletBalance(currentWallet.getCurrency().name(), walletBalance.getBalance()));
+        if(!CollectionUtils.isEmpty(user.getWallets())){
+            for (Wallet currentWallet : user.getWallets()) {
+                walletBalanceList.add(new WalletBalance(currentWallet.getCurrency().name(),
+                        currentWallet.getBalance().toString()));
+            }
         }
-
         return new Gson().toJson(new WalletsBalance(walletBalanceList));
+    }
+
+    private BigDecimal updateWalletBalanceValue(final BigDecimal balance, final BigDecimal operationValue, final String operation) {
+        log.info("Update wallet balance value");
+        BigDecimal updatedValue;
+        if (StringUtils.equals(operation, Operation.WITHDRAW.name())) {
+            updatedValue = balance.subtract(operationValue);
+        } else if (StringUtils.equals(operation, Operation.DEPOSIT.name())) {
+            updatedValue = balance.add(operationValue);
+        } else {
+            log.info("Operation not recognized");
+            throw new OperationNotRecognizedException();
+        }
+        return updatedValue;
     }
 
 }
