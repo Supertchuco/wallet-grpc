@@ -23,15 +23,17 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public void validateUser(final User user, final CURRENCY walletCurrency) {
-        checkIfUserExists(user);
+    public boolean userHasCurrencyWallet(final User user, final CURRENCY walletCurrency) {
         if (Objects.isNull(user.getWalletByCurrency(walletCurrency.name()))) {
             log.info("Wallet with this specific currency {} not found", walletCurrency.name());
-            throw new WalletWithSpecificCurrencyNotFoundException();
+            return false;
+        }else{
+            log.info("Wallet with this specific currency {} found", walletCurrency.name());
+            return true;
         }
     }
 
-    public void checkIfUserExists(final User user) {
+    public void validateUser(final User user) {
         if (Objects.isNull(user)) {
             log.info("user not found");
             throw new UserNotFoundException("User not found");

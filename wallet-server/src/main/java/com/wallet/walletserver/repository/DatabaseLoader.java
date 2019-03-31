@@ -27,7 +27,7 @@ public class DatabaseLoader implements CommandLineRunner {
     public void run(String... strings) {
 
         List<Wallet> wallets = new ArrayList<>();
-        wallets.add(new Wallet(1, new BigDecimal("24.45"), CURRENCY.EUR));
+        wallets.add(new Wallet(1, new BigDecimal("24.45"), CURRENCY.USD));
         wallets.add(new Wallet(2, new BigDecimal("18.22"), CURRENCY.GBP));
         User user1 = new User(1, "Rodrigo Suco", wallets);
         userRepository.save(user1);

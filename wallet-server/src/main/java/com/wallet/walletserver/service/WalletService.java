@@ -8,6 +8,7 @@ import com.wallet.walletserver.entity.Wallet;
 import com.wallet.walletserver.enumerator.Operation;
 import com.wallet.walletserver.exception.AmountIsZeroException;
 import com.wallet.walletserver.exception.InsufficientFundsException;
+import com.wallet.walletserver.exception.InvalidArgumentException;
 import com.wallet.walletserver.exception.OperationNotRecognizedException;
 import com.wallet.walletserver.vo.WalletBalance;
 import com.wallet.walletserver.vo.WalletsBalance;
@@ -46,28 +47,40 @@ public class WalletService {
     public User depositOperation(final BigDecimal depositValue, final int userId, final CURRENCY currency) {
         log.info("Initiate deposit Operation");
         User user = userService.findUserById(userId);
-        userService.validateUser(user, currency);
+        userService.validateUser(user);
         checkIfAmountIsZero(depositValue);
-        user.getWalletByCurrency(currency.name()).setBalance(updateWalletBalanceValue(user.getWalletByCurrency(currency.name()).getBalance(), depositValue, Operation.DEPOSIT.name()));
+        if (userService.userHasCurrencyWallet(user, currency)) {
+            user.getWalletByCurrency(currency.name()).setBalance(updateWalletBalanceValue(user.getWalletByCurrency(currency.name()).getBalance(), depositValue, Operation.DEPOSIT.name()));
+        } else {
+            log.info("Create new wallet with currency {}", currency);
+            if(Objects.isNull(user.getWallets())){
+                user.setWallets(new ArrayList<>());
+            }
+            user.getWallets().add(new Wallet(depositValue, currency));
+        }
         return userService.saveUser(user);
     }
 
     public void withdrawOperation(final BigDecimal withdrawValue, final int userId, final CURRENCY currency) {
         log.info("Initiate withdraw Operation");
         User user = userService.findUserById(userId);
-        userService.validateUser(user, currency);
+        userService.validateUser(user);
         checkIfAmountIsZero(withdrawValue);
-        checkIfBalanceIsEnoughToWithdrawOperation(withdrawValue, user.getWalletByCurrency(currency.name()).getBalance());
-        user.getWalletByCurrency(currency.name()).setBalance(updateWalletBalanceValue(user.getWalletByCurrency(currency.name()).getBalance(), withdrawValue, Operation.WITHDRAW.name()));
-        userService.saveUser(user);
+        if (userService.userHasCurrencyWallet(user, currency)) {
+            checkIfBalanceIsEnoughToWithdrawOperation(withdrawValue, user.getWalletByCurrency(currency.name()).getBalance());
+            user.getWalletByCurrency(currency.name()).setBalance(updateWalletBalanceValue(user.getWalletByCurrency(currency.name()).getBalance(), withdrawValue, Operation.WITHDRAW.name()));
+            userService.saveUser(user);
+        }else{
+            throw new InvalidArgumentException();
+        }
     }
 
     public String getWalletsBalance(final int userId) {
         log.info("Initiate get balance Operation");
         User user = userService.findUserById(userId);
-        userService.checkIfUserExists(user);
+        userService.validateUser(user);
         List<WalletBalance> walletBalanceList = new ArrayList<>();
-        if(!CollectionUtils.isEmpty(user.getWallets())){
+        if (!CollectionUtils.isEmpty(user.getWallets())) {
             for (Wallet currentWallet : user.getWallets()) {
                 walletBalanceList.add(new WalletBalance(currentWallet.getCurrency().name(),
                         currentWallet.getBalance().toString()));

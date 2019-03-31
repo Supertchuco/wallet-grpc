@@ -4,7 +4,6 @@ import com.wallet.proto.CURRENCY;
 import com.wallet.walletserver.entity.User;
 import com.wallet.walletserver.entity.Wallet;
 import com.wallet.walletserver.exception.UserNotFoundException;
-import com.wallet.walletserver.exception.WalletWithSpecificCurrencyNotFoundException;
 import com.wallet.walletserver.repository.UserRepository;
 import com.wallet.walletserver.service.UserService;
 import org.junit.Before;
@@ -47,17 +46,12 @@ public class UserServiceTest {
 
     @Test
     public void validateUserHappyScenarioTest() {
-        userService.validateUser(user, CURRENCY.GBP);
+        userService.validateUser(user);
     }
 
     @Test(expected = UserNotFoundException.class)
     public void validateUserWhenUserIsNullTest() {
-        userService.validateUser(null, CURRENCY.GBP);
-    }
-
-    @Test(expected = WalletWithSpecificCurrencyNotFoundException.class)
-    public void validateUserWhenWalletWithSpecificCurrencyNotFound() {
-        userService.validateUser(user, CURRENCY.UNRECOGNIZED);
+        userService.validateUser(null);
     }
 
     @Test

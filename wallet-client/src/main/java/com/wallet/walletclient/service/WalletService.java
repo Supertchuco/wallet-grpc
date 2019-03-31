@@ -3,11 +3,7 @@ package com.wallet.walletclient.service;
 import com.wallet.proto.BaseRequest;
 import com.wallet.proto.StatusMessage;
 import com.wallet.proto.WalletServiceGrpc;
-import com.wallet.walletclient.exception.AmountShouldBeGreaterThanZeroException;
-import com.wallet.walletclient.exception.InsufficientBalanceException;
-import com.wallet.walletclient.exception.InvalidArgumentsException;
-import com.wallet.walletclient.exception.UnknowException;
-import com.wallet.walletclient.exception.UserNotFoundException;
+import com.wallet.walletclient.exception.*;
 import com.wallet.walletclient.grpcservice.WalletClientGrpcService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -15,6 +11,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
+
+import static com.wallet.walletclient.enumerators.Error.*;
 
 @Slf4j
 @Service
@@ -64,23 +62,23 @@ public class WalletService {
     private void throwSpecificException(final Exception exception) {
         String message = ExceptionUtils.getRootCauseMessage(exception);
         if (StringUtils.contains(exception.getMessage(), StatusMessage.USER_DOES_NOT_EXIST.toString())) {
-            log.error("User not found");
-            throw new UserNotFoundException(message);
+            log.error(USER_NOT_FOUND.getMessage());
+            throw new UserNotFoundException(USER_NOT_FOUND.getMessage());
         }
         if (StringUtils.contains(exception.getMessage(), StatusMessage.INVALID_ARGUMENTS.toString())) {
-            log.error("Invalid arguments");
-            throw new InvalidArgumentsException(message);
+            log.error(INVALID_ARGUMENTS.getMessage());
+            throw new InvalidArgumentsException(INVALID_ARGUMENTS.getMessage());
         }
         if (StringUtils.contains(exception.getMessage(), StatusMessage.AMOUNT_SHOULD_BE_GREATER_THAN_ZERO.toString())) {
-            log.error("Amount should be greater than zero");
-            throw new AmountShouldBeGreaterThanZeroException(message);
+            log.error(AMOUNT_SHOULD_BE_GREATER_THAN_ZERO.getMessage());
+            throw new AmountShouldBeGreaterThanZeroException(AMOUNT_SHOULD_BE_GREATER_THAN_ZERO.getMessage());
         }
         if (StringUtils.contains(exception.getMessage(), StatusMessage.INSUFFICIENT_BALANCE.toString())) {
-            log.error("Insufficient balance");
-            throw new InsufficientBalanceException(message);
+            log.error(INSUFFICIENT_BALANCE.getMessage());
+            throw new InsufficientBalanceException(INSUFFICIENT_BALANCE.getMessage());
         } else {
-            log.error("Unknow exception ", exception);
-            throw new UnknowException("Internal server error");
+            log.error("Unknow Exception", exception);
+            throw new UnknowException(UNKNOW_EXCEPTION.getMessage());
         }
     }
 }

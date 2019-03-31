@@ -6,6 +6,7 @@ import com.wallet.walletserver.entity.Wallet;
 import com.wallet.walletserver.enumerator.Operation;
 import com.wallet.walletserver.exception.AmountIsZeroException;
 import com.wallet.walletserver.exception.InsufficientFundsException;
+import com.wallet.walletserver.exception.InvalidArgumentException;
 import com.wallet.walletserver.exception.OperationNotRecognizedException;
 import com.wallet.walletserver.service.UserService;
 import com.wallet.walletserver.service.WalletService;
@@ -80,13 +81,23 @@ public class WalletServiceTest {
     }
 
     @Test
-    public void depositOperationHappyScenarioTest() {
+    public void depositOperationHappyScenarioWhenUserHasCurrencyWalletTest() {
+        when(userService.userHasCurrencyWallet(Mockito.any(User.class), Mockito.any(CURRENCY.class))).thenReturn(true);
         when(userService.findUserById(Mockito.anyInt())).thenReturn(user);
         walletService.depositOperation(new BigDecimal("10.01"), 234, CURRENCY.EUR);
     }
 
+
     @Test
     public void withdrawOperationHappyScenarioTest() {
+        when(userService.userHasCurrencyWallet(Mockito.any(User.class), Mockito.any(CURRENCY.class))).thenReturn(true);
+        when(userService.findUserById(Mockito.anyInt())).thenReturn(user);
+        walletService.withdrawOperation(new BigDecimal("10.01"), 234, CURRENCY.GBP);
+    }
+
+    @Test(expected = InvalidArgumentException.class)
+    public void withdrawOperationWhenClientNotHaveCurrencyWalletTest() {
+        when(userService.userHasCurrencyWallet(Mockito.any(User.class), Mockito.any(CURRENCY.class))).thenReturn(false);
         when(userService.findUserById(Mockito.anyInt())).thenReturn(user);
         walletService.withdrawOperation(new BigDecimal("10.01"), 234, CURRENCY.GBP);
     }

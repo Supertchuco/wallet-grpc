@@ -8,11 +8,7 @@ import com.wallet.walletclient.vo.DepositRequestVO;
 import com.wallet.walletclient.vo.WithdrawRequestVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.concurrent.ExecutionException;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/wallet")
@@ -26,24 +22,23 @@ public class WalletController {
     @Autowired
     private WalletService walletService;
 
-    @GetMapping(path = "/deposit")
-    public String deposit(final DepositRequestVO depositRequestVO) throws InterruptedException, ExecutionException {
+    @PostMapping(path = "/deposit")
+    public String deposit(@RequestBody final DepositRequestVO depositRequestVO) {
         return walletService.depositClientOperation(walletServiceFutureStub,
-            BaseRequest.newBuilder().setUserID(depositRequestVO.getUserId()).setAmount(depositRequestVO.getAmount()).setCurrency(depositRequestVO.getCurrency()).build(),
-            taskExecuter);
+                BaseRequest.newBuilder().setUserID(depositRequestVO.getUserId()).setAmount(depositRequestVO.getAmount()).setCurrency(depositRequestVO.getCurrency()).build(),
+                taskExecuter);
     }
 
-    @GetMapping(path = "/withdraw")
-    public String withdraw(final WithdrawRequestVO withdrawRequestVO) throws InterruptedException, ExecutionException {
+    @PostMapping(path = "/withdraw")
+    public String withdraw(@RequestBody final WithdrawRequestVO withdrawRequestVO) {
         return walletService.withdrawClientOperation(walletServiceFutureStub,
-            BaseRequest.newBuilder().setUserID(withdrawRequestVO.getUserId()).setAmount(withdrawRequestVO.getAmount()).setCurrency(withdrawRequestVO.getCurrency()).build(),
-            taskExecuter);
+                BaseRequest.newBuilder().setUserID(withdrawRequestVO.getUserId()).setAmount(withdrawRequestVO.getAmount()).setCurrency(withdrawRequestVO.getCurrency()).build(),
+                taskExecuter);
     }
 
     @GetMapping(path = "/balance")
-    public String withdraw(final BalanceRequestVO balanceRequestVO)
-        throws InterruptedException, ExecutionException {
+    public String balance(final BalanceRequestVO balanceRequestVO) {
         return walletService.getBalanceClientOperation(walletServiceFutureStub, BaseRequest.newBuilder().setUserID(balanceRequestVO.getUserId()).build(),
-            taskExecuter);
+                taskExecuter);
     }
 }
