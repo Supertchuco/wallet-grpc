@@ -25,14 +25,14 @@ public class User {
 
     @Id
     @Column
-    private int id;
+    private int userId;
 
     @Column
-    private String name;
+    private String userName;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JsonManagedReference
-    @JoinColumn(name = "id", nullable = false)
+    @JoinColumn(name = "userId", nullable = false)
     private List<Wallet> wallets;
 
     public Wallet getWalletByCurrency(final String currency) {

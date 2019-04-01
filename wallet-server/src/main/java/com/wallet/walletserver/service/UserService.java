@@ -41,7 +41,7 @@ public class UserService {
     }
 
     public User saveUser(final User user) {
-        log.info("Update User with user id: {}", user.getId());
+        log.info("Update User with user id: {}", user.getUserId());
         return userRepository.save(user);
     }
 

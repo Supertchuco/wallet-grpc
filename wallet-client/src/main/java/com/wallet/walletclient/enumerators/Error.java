@@ -11,7 +11,7 @@ public enum Error {
     INVALID_ARGUMENTS("Invalid arguments"),
     AMOUNT_SHOULD_BE_GREATER_THAN_ZERO("Amount should be greater than zero"),
     UNKNOW_EXCEPTION("Internal server error. Please contact support"),
-    INSUFFICIENT_BALANCE("Insufficient balance");
+    INSUFFICIENT_FOUNDS("Insufficient founds");
 
     private String message;
 

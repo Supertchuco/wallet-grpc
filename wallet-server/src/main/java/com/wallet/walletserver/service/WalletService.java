@@ -71,7 +71,7 @@ public class WalletService {
             user.getWalletByCurrency(currency.name()).setBalance(updateWalletBalanceValue(user.getWalletByCurrency(currency.name()).getBalance(), withdrawValue, Operation.WITHDRAW.name()));
             userService.saveUser(user);
         }else{
-            throw new InvalidArgumentException();
+            throw new InsufficientFundsException();
         }
     }
 

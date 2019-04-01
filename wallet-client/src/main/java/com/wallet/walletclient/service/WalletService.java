@@ -74,8 +74,8 @@ public class WalletService {
             throw new AmountShouldBeGreaterThanZeroException(AMOUNT_SHOULD_BE_GREATER_THAN_ZERO.getMessage());
         }
         if (StringUtils.contains(exception.getMessage(), StatusMessage.INSUFFICIENT_BALANCE.toString())) {
-            log.error(INSUFFICIENT_BALANCE.getMessage());
-            throw new InsufficientBalanceException(INSUFFICIENT_BALANCE.getMessage());
+            log.error(INSUFFICIENT_FOUNDS.getMessage());
+            throw new InsufficientBalanceException(INSUFFICIENT_FOUNDS.getMessage());
         } else {
             log.error("Unknow Exception", exception);
             throw new UnknowException(UNKNOW_EXCEPTION.getMessage());

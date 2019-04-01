@@ -26,8 +26,11 @@ public class DatabaseLoader implements CommandLineRunner {
     @Override
     public void run(String... strings) {
 
-        List<Wallet> wallets = new ArrayList<>();
-        wallets.add(new Wallet(1, new BigDecimal("24.45"), CURRENCY.USD));
+        User user = new User(1, "Rodrigo Suco", null);
+        userRepository.save(user);
+
+/*        List<Wallet> wallets = new ArrayList<>();
+        wallets.add(new Wallet(1, new BigDecimal("0.00"), CURRENCY.USD));
         wallets.add(new Wallet(2, new BigDecimal("18.22"), CURRENCY.GBP));
         User user1 = new User(1, "Rodrigo Suco", wallets);
         userRepository.save(user1);
@@ -35,11 +38,8 @@ public class DatabaseLoader implements CommandLineRunner {
         wallets = new ArrayList<>();
         wallets.add(new Wallet(3, new BigDecimal("0.00"), CURRENCY.UNRECOGNIZED));
         User user2 = new User(2, "Andre Balada", wallets);
-        userRepository.save(user2);
+        userRepository.save(user2);*/
 
-        wallets = null;
-        User user3 = new User(3, "Vizeu", wallets);
-        userRepository.save(user3);
     }
 
 }
