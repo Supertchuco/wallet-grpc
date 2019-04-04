@@ -8,9 +8,11 @@ import com.wallet.walletclient.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -23,6 +25,12 @@ public class ConcurrencyService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private WalletServiceGrpc.WalletServiceFutureStub walletServiceFutureStub;
+
+    @Autowired
+    private TaskExecutor taskExecuter;
 
     private static final char A = 'A';
     private static final char B = 'B';
@@ -44,11 +52,35 @@ public class ConcurrencyService {
                           final int userId, final TaskExecutor taskExecutor) {
         log.info("Initiate Round B for user id: {}", userId);
 
-        walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.GBP, "100.00"), taskExecutor);
-        walletService.depositClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.GBP, "300.00"), taskExecutor);
-        walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.GBP, "100.00"), taskExecutor);
-        walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.GBP, "100.00"), taskExecutor);
-        walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.GBP, "100.00"), taskExecutor);
+        try {
+            walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.GBP, "100.00"), taskExecutor);
+        } catch (Exception e) {
+            log.info("Round B: {}", e.getMessage());
+        }
+
+        try {
+            walletService.depositClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.GBP, "300.00"), taskExecutor);
+        } catch (Exception e) {
+            log.info("Round B: {}", e.getMessage());
+        }
+
+        try {
+            walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.GBP, "100.00"), taskExecutor);
+        } catch (Exception e) {
+            log.info("Round B: {}", e.getMessage());
+        }
+
+        try {
+            walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.GBP, "100.00"), taskExecutor);
+        } catch (Exception e) {
+            log.info("Round B: {}", e.getMessage());
+        }
+
+        try {
+            walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.GBP, "100.00"), taskExecutor);
+        } catch (Exception e) {
+            log.info("Round B: {}", e.getMessage());
+        }
 
     }
 
@@ -69,37 +101,61 @@ public class ConcurrencyService {
         return BaseRequest.newBuilder().setUserID(userId).setAmount(amount).setCurrency(currency).build();
     }
 
-
-    public void startUsersConcurrently(final int numberUsers, final int concurrentThreadsPerUser, final int numberOfRoundsPerThred) {
-
+    private List<User> createUsers(final int numberUsers) {
         List<User> users = new ArrayList<>();
         log.info("create the users on database");
+
         for (int index = 0; index < numberUsers; index++) {
             users.add(new User(index, "name_" + index, null));
             userRepository.save(users.get(index));
         }
 
-        // create the threads
-        // randomize the rounds per thread
+        return users;
     }
 
-    private char randomizeRounds() {
-        char[] arr = {A, B, C};
-        Random random = new Random();
-        return arr[random.nextInt(arr.length)];
+    private void deleteUsers(final List<User> users) {
+        log.info("delete users on database");
+        userRepository.deleteAll(users);
     }
 
-    public void executeRound(final WalletServiceGrpc.WalletServiceFutureStub futureStub,
-                             final int userId, final TaskExecutor taskExecutor) {
-        char round = randomizeRounds();
-        if (round == A) {
-            doRoundA(futureStub, userId, taskExecutor);
-        } else if (round == B) {
-            doRoundB(futureStub, userId, taskExecutor);
-        } else {
-            doRoundC(futureStub, userId, taskExecutor);
+    @Async
+    public void startUsersConcurrently(final int numberOfUsers, final int concurrentThreadsPerUser, final int numberOfRoundsPerThread) {
+
+        List<User> users = createUsers(numberOfUsers);
+
+        for (User user : users) {
+            log.info("Execute threads for user id: {}", user.getUserId());
+            for (int index2 = 0; index2 < numberOfRoundsPerThread; index2++) {
+                executeRounds(user.getUserId(), numberOfRoundsPerThread);
+            }
+        }
+
+        deleteUsers(users);
+    }
+
+    private char randomizeRounds(final char[] options, final Random random) {
+        return options[random.nextInt(options.length)];
+    }
+
+    @Async
+    private void executeRounds(final int userId, final int times) {
+        final char[] options = {A, B, C};
+        final Random random = new Random();
+        char round;
+        for (int index = 0; index < times; index++) {
+           // round = randomizeRounds(options, random);
+            round = 'B';
+            if (round == A) {
+                doRoundA(walletServiceFutureStub, userId, taskExecuter);
+            } else if (round == B) {
+                doRoundB(walletServiceFutureStub, userId, taskExecuter);
+            } else {
+                doRoundC(walletServiceFutureStub, userId, taskExecuter);
+            }
         }
     }
+
+
 
 
 /*    The wallet client should have the following CLI parameters:

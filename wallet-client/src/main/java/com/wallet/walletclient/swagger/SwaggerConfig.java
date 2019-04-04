@@ -19,19 +19,20 @@ public class SwaggerConfig {
     @Bean
     public Docket postsApi() {
         return new Docket(DocumentationType.SWAGGER_2).groupName("public-api")
-            .apiInfo(apiInfo()).select().paths(postPaths()).build();
+                .apiInfo(apiInfo()).select().paths(postPaths()).build();
     }
 
     private Predicate<String> postPaths() {
         return or(
-            regex("/wallet.*")
+                regex("/wallet.*"),
+                regex("/concurrency.*")
         );
     }
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder().title("Wallet GRPC Transaction API")
-            .description("Wallet GRPC Transaction API reference for developers")
-            .contact("rafael.whatsthestory@gmail.com").version("1.0").build();
+                .description("Wallet GRPC Transaction API reference for developers")
+                .contact("rafael.whatsthestory@gmail.com").version("1.0").build();
     }
 
 }

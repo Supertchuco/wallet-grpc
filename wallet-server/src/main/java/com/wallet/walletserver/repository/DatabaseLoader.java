@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
+//@Component
 public class DatabaseLoader implements CommandLineRunner {
 
     private final UserRepository userRepository;
