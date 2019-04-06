@@ -3,14 +3,18 @@ package com.wallet.walletclient.service;
 import com.wallet.proto.BaseRequest;
 import com.wallet.proto.StatusMessage;
 import com.wallet.proto.WalletServiceGrpc;
+import com.wallet.walletclient.entity.Wallet;
 import com.wallet.walletclient.exception.*;
 import com.wallet.walletclient.grpcservice.WalletClientGrpcService;
+import com.wallet.walletclient.repository.WalletRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 import static com.wallet.walletclient.enumerators.Error.*;
 
@@ -20,6 +24,9 @@ public class WalletService {
 
     @Autowired
     private WalletClientGrpcService walletClientGrpcService;
+
+    @Autowired
+    private WalletRepository walletRepository;
 
     public String depositClientOperation(final WalletServiceGrpc.WalletServiceFutureStub futureStub,
                                          final BaseRequest baseRequest, final TaskExecutor taskExecutor) {
@@ -80,5 +87,13 @@ public class WalletService {
             log.error("Unknow Exception", exception);
             throw new UnknowException(UNKNOW_EXCEPTION.getMessage());
         }
+    }
+
+    public void deleteWallets(final List<Wallet> wallets) {
+        walletRepository.deleteAll(wallets);
+    }
+
+    public List<Wallet> findWalletsByUserId(final int userId){
+        return walletRepository.findWalletByUserId(userId);
     }
 }

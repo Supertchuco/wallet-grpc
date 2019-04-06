@@ -23,9 +23,9 @@ public class User {
     @Column
     private String userName;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval=true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval=true, fetch = FetchType.LAZY)
     @JsonManagedReference
-    @JoinColumn(name = "userId", nullable = false)
+    @JoinColumn(name = "userId")
     private List<Wallet> wallets;
 
 }

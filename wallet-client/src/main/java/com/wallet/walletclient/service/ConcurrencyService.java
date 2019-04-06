@@ -2,19 +2,20 @@ package com.wallet.walletclient.service;
 
 import com.wallet.proto.BaseRequest;
 import com.wallet.proto.CURRENCY;
-import com.wallet.proto.WalletServiceGrpc;
 import com.wallet.walletclient.entity.User;
-import com.wallet.walletclient.repository.UserRepository;
+import com.wallet.walletclient.entity.Wallet;
+import com.wallet.walletclient.exception.UnknowException;
+import com.wallet.walletclient.thread.RoundThread;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+
+import static com.wallet.walletclient.enumerators.Error.UNKNOW_EXCEPTION;
 
 @Service
 @Slf4j
@@ -24,143 +25,79 @@ public class ConcurrencyService {
     private WalletService walletService;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Autowired
-    private WalletServiceGrpc.WalletServiceFutureStub walletServiceFutureStub;
+    private RoundThread roundThread;
 
-    @Autowired
-    private TaskExecutor taskExecuter;
-
-    private static final char A = 'A';
-    private static final char B = 'B';
-    private static final char C = 'C';
-
-    private void doRoundA(final WalletServiceGrpc.WalletServiceFutureStub futureStub,
-                          final int userId, final TaskExecutor taskExecutor) {
-        log.info("Initiate Round A for user id: {}", userId);
-        walletService.depositClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.USD, "100.00"), taskExecutor);
-        walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.USD, "200.00"), taskExecutor);
-        walletService.depositClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.EUR, "100.00"), taskExecutor);
-        walletService.getBalanceClientOperation(futureStub, BaseRequest.newBuilder().setUserID(userId).build(), taskExecutor);
-        walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.USD, "100.00"), taskExecutor);
-        walletService.getBalanceClientOperation(futureStub, BaseRequest.newBuilder().setUserID(userId).build(), taskExecutor);
-        walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.USD, "100.00"), taskExecutor);
-    }
-
-    private void doRoundB(final WalletServiceGrpc.WalletServiceFutureStub futureStub,
-                          final int userId, final TaskExecutor taskExecutor) {
-        log.info("Initiate Round B for user id: {}", userId);
-
-        try {
-            walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.GBP, "100.00"), taskExecutor);
-        } catch (Exception e) {
-            log.info("Round B: {}", e.getMessage());
-        }
-
-        try {
-            walletService.depositClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.GBP, "300.00"), taskExecutor);
-        } catch (Exception e) {
-            log.info("Round B: {}", e.getMessage());
-        }
-
-        try {
-            walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.GBP, "100.00"), taskExecutor);
-        } catch (Exception e) {
-            log.info("Round B: {}", e.getMessage());
-        }
-
-        try {
-            walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.GBP, "100.00"), taskExecutor);
-        } catch (Exception e) {
-            log.info("Round B: {}", e.getMessage());
-        }
-
-        try {
-            walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.GBP, "100.00"), taskExecutor);
-        } catch (Exception e) {
-            log.info("Round B: {}", e.getMessage());
-        }
-
-    }
-
-    private void doRoundC(final WalletServiceGrpc.WalletServiceFutureStub futureStub,
-                          final int userId, final TaskExecutor taskExecutor) {
-        log.info("Initiate Round C for user id: {}", userId);
-        walletService.getBalanceClientOperation(futureStub, BaseRequest.newBuilder().setUserID(userId).build(), taskExecutor);
-        walletService.depositClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.USD, "100.00"), taskExecutor);
-        walletService.depositClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.USD, "100.00"), taskExecutor);
-        walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.USD, "100.00"), taskExecutor);
-        walletService.depositClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.USD, "100.00"), taskExecutor);
-        walletService.getBalanceClientOperation(futureStub, BaseRequest.newBuilder().setUserID(userId).build(), taskExecutor);
-        walletService.withdrawClientOperation(futureStub, buildBaseRequest(userId, CURRENCY.USD, "200.00"), taskExecutor);
-        walletService.getBalanceClientOperation(futureStub, BaseRequest.newBuilder().setUserID(userId).build(), taskExecutor);
-    }
-
-    private BaseRequest buildBaseRequest(final int userId, final CURRENCY currency, final String amount) {
+    public BaseRequest buildBaseRequest(final int userId, final CURRENCY currency, final String amount) {
         return BaseRequest.newBuilder().setUserID(userId).setAmount(amount).setCurrency(currency).build();
     }
 
     private List<User> createUsers(final int numberUsers) {
         List<User> users = new ArrayList<>();
         log.info("create the users on database");
-
         for (int index = 0; index < numberUsers; index++) {
-            users.add(new User(index, "name_" + index, null));
-            userRepository.save(users.get(index));
+            users.add(new User(index, "name_concurrency_" + index, null));
+            userService.saveUser(users.get(index));
         }
-
         return users;
     }
 
-    private void deleteUsers(final List<User> users) {
-        log.info("delete users on database");
-        userRepository.deleteAll(users);
+    private CompletableFuture<Void> buildCompletableFutureList(final List<User> users, final int concurrentThreadsPerUser, final int numberOfRoundsPerThread) {
+        List<CompletableFuture<String>> executeRoundsFutures = new ArrayList<>();
+        log.info("Building completable future list");
+        try {
+            for (User user : users) {
+                log.info("Execute threads for user id: {}", user.getUserId());
+                Wallet wallet;
+                for (int index2 = 0; index2 < concurrentThreadsPerUser; index2++) {
+                    executeRoundsFutures.add(roundThread.executeRounds(user.getUserId(), numberOfRoundsPerThread, index2));
+                }
+            }
+        } catch (Exception e) {
+            log.error("Catastrophic error during build completable future list", e);
+            throw new UnknowException(UNKNOW_EXCEPTION.getMessage());
+        }
+
+        return CompletableFuture.allOf(
+                executeRoundsFutures.toArray(new CompletableFuture[executeRoundsFutures.size()])
+        );
     }
 
-    @Async
-    public void startUsersConcurrently(final int numberOfUsers, final int concurrentThreadsPerUser, final int numberOfRoundsPerThread) {
+    private void waitForAllThreadsFinish(final CompletableFuture<Void> allFutures) {
+        log.info("Waiting for pending threads...");
+        try {
+            while (!allFutures.isDone()) {
+                log.info("Waiting...");
+                Thread.sleep(300);
+            }
+        } catch (Exception e) {
+            log.error("Error during waiting for all pending threads", e);
+            throw new UnknowException(UNKNOW_EXCEPTION.getMessage());
+        }
+    }
 
+    public void startUsersConcurrency(final int numberOfUsers, final int concurrentThreadsPerUser, final int numberOfRoundsPerThread) {
+        log.info("Start user concurrency process");
         List<User> users = createUsers(numberOfUsers);
+        waitForAllThreadsFinish(buildCompletableFutureList(users, concurrentThreadsPerUser, numberOfRoundsPerThread));
+        log.info("All threads processed");
+        deleteAllUsers(users);
+    }
 
+    private void deleteAllUsers(final List<User> users) {
+        log.info("Delete all users created for this concurrency process");
         for (User user : users) {
-            log.info("Execute threads for user id: {}", user.getUserId());
-            for (int index2 = 0; index2 < numberOfRoundsPerThread; index2++) {
-                executeRounds(user.getUserId(), numberOfRoundsPerThread);
-            }
-        }
-
-        deleteUsers(users);
-    }
-
-    private char randomizeRounds(final char[] options, final Random random) {
-        return options[random.nextInt(options.length)];
-    }
-
-    @Async
-    private void executeRounds(final int userId, final int times) {
-        final char[] options = {A, B, C};
-        final Random random = new Random();
-        char round;
-        for (int index = 0; index < times; index++) {
-           // round = randomizeRounds(options, random);
-            round = 'B';
-            if (round == A) {
-                doRoundA(walletServiceFutureStub, userId, taskExecuter);
-            } else if (round == B) {
-                doRoundB(walletServiceFutureStub, userId, taskExecuter);
-            } else {
-                doRoundC(walletServiceFutureStub, userId, taskExecuter);
-            }
+            deleteUser(user);
         }
     }
 
-
-
-
-/*    The wallet client should have the following CLI parameters:
-    users (number of concurrent users emulated)
-    concurrent_threads_per_user (number of concurrent requests a user will make)
-    rounds_per_thread (number of rounds each thread is executing)
-    Make sure the client exits when all rounds has been executed.*/
+    private void deleteUser(final User user) {
+        List<Wallet> wallets = walletService.findWalletsByUserId(user.getUserId());
+        if (!CollectionUtils.isEmpty(wallets)) {
+            walletService.deleteWallets(wallets);
+        }
+        userService.deleteUser(user);
+    }
 }

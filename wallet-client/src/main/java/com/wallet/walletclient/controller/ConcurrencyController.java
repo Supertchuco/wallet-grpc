@@ -18,7 +18,7 @@ public class ConcurrencyController {
 
     @PostMapping(path = "/startConcurrencyProcess")
     public HttpStatus startConcurrencyProcess(@RequestBody final ConcurrencyInputsVO concurrencyInputsVO) {
-        concurrencyService.startUsersConcurrently(concurrencyInputsVO.getNumberOfUsers(),
+        concurrencyService.startUsersConcurrency(concurrencyInputsVO.getNumberOfUsers(),
                 concurrencyInputsVO.getConcurrentThreadsPerUser(), concurrencyInputsVO.getNumberOfRoundsPerThread());
         return HttpStatus.OK;
     }
