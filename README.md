@@ -1,14 +1,14 @@
 This is wallet grpc project , I developed this project using Intellij IDE and these technologies and frameworks:
-	- Springboot,
-	- Gradle,
-	- Oracle Database,
-	- Mysql Database,
-	- H2 (memory database),
-	- Swagger,
-	- Lombok,
-	- Actuator,
-	- Google GRPC,
-	- Spring rest.
+ - Springboot,
+ - Gradle,
+ - Oracle Database,
+ - Mysql Database,
+ - H2 (memory database),
+ - Swagger,
+ - Lombok,
+ - Actuator,
+ - Google GRPC,
+ - Spring rest.
 
 This project is formed by two SpringBoot Applications:
 
