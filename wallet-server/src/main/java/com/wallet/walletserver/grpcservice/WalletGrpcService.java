@@ -29,12 +29,10 @@ public class WalletGrpcService extends WalletServiceGrpc.WalletServiceImplBase {
     @Autowired
     private UserService userService;
 
-
     @Override
     @Transactional
     public void deposit(final BaseRequest request, final StreamObserver<BaseResponse> responseObserver) {
         try {
-
             log.info("Deposit operation user id:{} For Amount:{} and Currency: {}", request.getUserID(), request.getAmount(),
                     request.getCurrency());
 
@@ -46,7 +44,6 @@ public class WalletGrpcService extends WalletServiceGrpc.WalletServiceImplBase {
             walletService.depositOperation(new BigDecimal(request.getAmount()), request.getUserID(), request.getCurrency());
             successResponse(responseObserver, OPERATION.DEPOSIT);
             log.info("Operation finished with success");
-
         } catch (InvalidArgumentException | NumberFormatException invalidArgumentException) {
             responseObserver.onError(new StatusRuntimeException(Status.FAILED_PRECONDITION.withDescription(StatusMessage.INVALID_ARGUMENTS.toString())));
 
@@ -66,7 +63,6 @@ public class WalletGrpcService extends WalletServiceGrpc.WalletServiceImplBase {
     @Transactional
     public void withdraw(final BaseRequest request, final StreamObserver<BaseResponse> responseObserver) {
         try {
-
             log.info("Withdraw operation user id:{} For withdraw value:{} and Currency: {}", request.getUserID(), request.getAmount(),
                     request.getCurrency());
 
@@ -102,7 +98,6 @@ public class WalletGrpcService extends WalletServiceGrpc.WalletServiceImplBase {
     @Transactional
     public void balance(final BaseRequest request, final StreamObserver<BaseResponse> responseObserver) {
         try {
-
             log.info("Get balance operation user id:{} For withdraw value:{} and Currency: {}", request.getUserID(), request.getAmount(),
                     request.getCurrency());
 
@@ -121,12 +116,9 @@ public class WalletGrpcService extends WalletServiceGrpc.WalletServiceImplBase {
 
     }
 
-
     private void successResponse(final StreamObserver<BaseResponse> responseObserver, OPERATION operation) {
         responseObserver.onNext(
                 BaseResponse.newBuilder().setStatus(STATUS.TRANSACTION_SUCCESS).setOperation(operation).build());
         responseObserver.onCompleted();
     }
-
-
 }

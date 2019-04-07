@@ -19,7 +19,6 @@ public class WalletClientApplication {
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setThreadNamePrefix("Async-");
         return executor;
-
     }
 
     public static void main(String[] args) {

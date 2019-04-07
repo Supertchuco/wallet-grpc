@@ -214,7 +214,6 @@ public class RoundThread {
         return CompletableFuture.completedFuture("Execute");
     }
 
-
     private char randomizeRounds(final char[] options, final Random random) {
         return options[random.nextInt(options.length)];
     }
