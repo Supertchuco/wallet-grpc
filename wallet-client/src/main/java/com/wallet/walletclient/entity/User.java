@@ -17,6 +17,7 @@ import java.util.List;
 public class User {
 
     @Id
+    @GeneratedValue
     @Column
     private int userId;
 
@@ -27,5 +28,9 @@ public class User {
     @JsonManagedReference
     @JoinColumn(name = "userId")
     private List<Wallet> wallets;
+
+    public User(final String userName){
+        this.userName = userName;
+    }
 
 }

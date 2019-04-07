@@ -3,7 +3,6 @@ package com.wallet.walletserver.service;
 import com.wallet.proto.CURRENCY;
 import com.wallet.walletserver.entity.User;
 import com.wallet.walletserver.exception.UserNotFoundException;
-import com.wallet.walletserver.exception.WalletWithSpecificCurrencyNotFoundException;
 import com.wallet.walletserver.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +26,7 @@ public class UserService {
         if (Objects.isNull(user.getWalletByCurrency(walletCurrency.name()))) {
             log.info("Wallet with this specific currency {} not found", walletCurrency.name());
             return false;
-        }else{
+        } else {
             log.info("Wallet with this specific currency {} found", walletCurrency.name());
             return true;
         }

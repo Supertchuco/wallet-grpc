@@ -20,7 +20,6 @@ apply plugin: 'com.google.protobuf'
 
 def grpcVersion = '1.19.0'
 def protobufVersion = '3.7.0'
-def protocVersion = protobufVersion
 def springBootGrpcVersion='2.0.1.RELEASE'
 
 protobuf {
@@ -47,8 +46,8 @@ idea {
 	}
 }
 
+jar.baseName ='wallet-client.jar'
 group = 'com.xhhuango'
-version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
 repositories {
@@ -58,12 +57,6 @@ repositories {
 dependencies {
 	implementation('org.springframework.boot:spring-boot-starter-web')
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-//	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-
-//	compile group: 'net.devh', name: 'grpc-client-spring-boot-autoconfigure', version: '2.2.1.RELEASE'
-
-	//compile("net.devh:grpc-server-spring-boot-starter:${grpcVersion}")
-//	compile 'io.github.lognet:grpc-spring-boot-starter:3.1.0'
 	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
 	compile "io.grpc:grpc-netty:${grpcVersion}"
 	compile "io.grpc:grpc-protobuf:${grpcVersion}"
@@ -75,5 +68,6 @@ dependencies {
 	compileOnly('org.projectlombok:lombok')
 	compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.7.0'
 	compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.7.0'
+	runtimeOnly('com.h2database:h2')
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
 }

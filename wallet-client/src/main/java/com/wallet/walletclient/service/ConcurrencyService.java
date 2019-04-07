@@ -38,7 +38,7 @@ public class ConcurrencyService {
         List<User> users = new ArrayList<>();
         log.info("create the users on database");
         for (int index = 0; index < numberUsers; index++) {
-            users.add(new User(index, "name_concurrency_" + index, null));
+            users.add(new User("name_concurrency_" + index));
             userService.saveUser(users.get(index));
         }
         return users;

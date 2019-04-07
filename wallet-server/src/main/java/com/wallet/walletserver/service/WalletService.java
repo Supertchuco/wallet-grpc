@@ -8,7 +8,6 @@ import com.wallet.walletserver.entity.Wallet;
 import com.wallet.walletserver.enumerator.Operation;
 import com.wallet.walletserver.exception.AmountIsZeroException;
 import com.wallet.walletserver.exception.InsufficientFundsException;
-import com.wallet.walletserver.exception.InvalidArgumentException;
 import com.wallet.walletserver.exception.OperationNotRecognizedException;
 import com.wallet.walletserver.vo.WalletBalance;
 import com.wallet.walletserver.vo.WalletsBalance;
@@ -53,7 +52,7 @@ public class WalletService {
             user.getWalletByCurrency(currency.name()).setBalance(updateWalletBalanceValue(user.getWalletByCurrency(currency.name()).getBalance(), depositValue, Operation.DEPOSIT.name()));
         } else {
             log.info("Create new wallet with currency {}", currency);
-            if(Objects.isNull(user.getWallets())){
+            if (Objects.isNull(user.getWallets())) {
                 user.setWallets(new ArrayList<>());
             }
             user.getWallets().add(new Wallet(depositValue, currency));
@@ -70,7 +69,7 @@ public class WalletService {
             checkIfBalanceIsEnoughToWithdrawOperation(withdrawValue, user.getWalletByCurrency(currency.name()).getBalance());
             user.getWalletByCurrency(currency.name()).setBalance(updateWalletBalanceValue(user.getWalletByCurrency(currency.name()).getBalance(), withdrawValue, Operation.WITHDRAW.name()));
             userService.saveUser(user);
-        }else{
+        } else {
             throw new InsufficientFundsException();
         }
     }
@@ -83,7 +82,7 @@ public class WalletService {
         if (!CollectionUtils.isEmpty(user.getWallets())) {
             for (Wallet currentWallet : user.getWallets()) {
                 walletBalanceList.add(new WalletBalance(currentWallet.getCurrency().name(),
-                        currentWallet.getBalance().toString()));
+                    currentWallet.getBalance().toString()));
             }
         }
         return new Gson().toJson(new WalletsBalance(walletBalanceList));

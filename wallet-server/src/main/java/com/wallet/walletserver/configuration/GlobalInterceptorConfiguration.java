@@ -1,4 +1,5 @@
 package com.wallet.walletserver.configuration;
+
 import net.devh.springboot.autoconfigure.grpc.server.GlobalServerInterceptorConfigurerAdapter;
 import net.devh.springboot.autoconfigure.grpc.server.GlobalServerInterceptorRegistry;
 import org.springframework.context.annotation.Bean;
@@ -12,8 +13,6 @@ public class GlobalInterceptorConfiguration {
         return new GlobalServerInterceptorConfigurerAdapter() {
             @Override
             public void addServerInterceptors(GlobalServerInterceptorRegistry registry) {
-                // Diabled For Now As logging for each Req/Response will cause performance issues.
-                // registry.addServerInterceptors(new LogGrpcInterceptor());
             }
         };
     }

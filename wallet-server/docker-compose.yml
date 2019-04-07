@@ -1,0 +1,11 @@
+version: "2"
+
+services:
+
+  wallet-client:
+    image: wallet-server:latest
+    ports:
+      - "9091:9091"
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=h2
