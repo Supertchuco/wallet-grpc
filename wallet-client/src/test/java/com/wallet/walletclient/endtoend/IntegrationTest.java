@@ -18,9 +18,9 @@ import java.io.IOException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
-@Ignore
-@ActiveProfiles("test")
+@ActiveProfiles("mysql")
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class IntegrationTest {
@@ -44,8 +44,9 @@ public class IntegrationTest {
         return headers;
     }
 
+    @Ignore
     @Test
-    @Sql("/sql/seed.sql")
+    @Sql(scripts = "/sql/seed.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/purge.sql", executionPhase = AFTER_TEST_METHOD)
     public void integrationTestOrchestrator() {
         shouldReturnInsufficientFoundsWhenUserNotHave200USDForWithdrawOperation();
